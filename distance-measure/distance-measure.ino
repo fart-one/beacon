@@ -1,3 +1,5 @@
+// HC-SR04: VCC - 5V, trigger - 3V
+// WeMos D1 (ESP8266): D1 - trigger, D2 - echo, D0 and RST connected for deep sleep mode
 #define trigPin 5 //D1
 #define echoPin 4 //D2
 
@@ -9,7 +11,6 @@ void setup() {
   pinMode(echoPin, INPUT);
 }
 
-// VCC 5V, trigger 3V
 
 void loop() {
   long czas, dystans;
@@ -25,8 +26,8 @@ void loop() {
   Serial.println(czas);
   dystans = czas / 58;
 
-  Serial.print("Dystans: ");
+  Serial.print("Distance: ");
   Serial.println(dystans);
 
-  ESP.deepSleep(sleepTime * 1000000);
+  //ESP.deepSleep(sleepTime * 1000000);
 }
