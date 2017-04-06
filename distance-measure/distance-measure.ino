@@ -1,6 +1,8 @@
 #define trigPin 5 //D1
 #define echoPin 4 //D2
 
+const int sleepTime = 5; // in seconds
+
 void setup() {
   Serial.begin (9600);
   pinMode(trigPin, OUTPUT);
@@ -14,17 +16,17 @@ void loop() {
 
   // measure
   digitalWrite(trigPin, LOW);
-  delay(2);
+  delayMicroseconds(2);
   digitalWrite(trigPin, HIGH);
-  delay(1);
+  delayMicroseconds(1);
   digitalWrite(trigPin, LOW);
 
   czas = pulseIn(echoPin, HIGH);
-  //Serial.println(czas);
+  Serial.println(czas);
   dystans = czas / 58;
 
   Serial.print("Dystans: ");
   Serial.println(dystans);
 
-  delay(500);
+  ESP.deepSleep(sleepTime * 1000000);
 }
