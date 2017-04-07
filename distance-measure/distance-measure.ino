@@ -80,8 +80,11 @@ void mqttPublish(int stat) {
       }
     }
     if (client.connected())
-      client.loop();
-    }
+        Serial.println("Connected to MQTT server");
+        client.set_callback(callback);
+        client.publish("toilet/"+String(OFFICE)+"/"+String(ESP.getChipId()),String(stat));
+  }
+
   String message = "toilet/"+String(OFFICE)+"/"+String(ESP.getChipId())+"/"+String(stat);
   Serial.println(message);
   }
