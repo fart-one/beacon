@@ -9,15 +9,15 @@
 #define echoPin 4 //D2
 
 #define UNOCCUPIED_DISTANCE 100
-#define OFFICE "Sokratesa13"
+#define OFFICE "MeaningfulOfficeID"
 const int sleepTime = 5; // in seconds
 
 // WiFi
-const char* SSID = "wifiSSID";
-const char* wifiPassword = "wifipassword";
-const char* mqttServer ="mqttserver";
-const char* mqttUser = "mqttuser";
-const char* mqttPassword = "mqttpassword";
+const char* SSID = "SSID;
+const char* wifiPassword = "WiFi password";
+const char* mqttServer ="mqtt FQDN";
+const char* mqttUser = "mqtt login";
+const char* mqttPassword = "mqtt password";
 
 // MQTT
 WiFiClient wclient;
@@ -63,32 +63,36 @@ void loop() {
 }
 
 
-void callback(const MQTT::Publish& pub) {
+void mqttCallback(const MQTT::Publish& pub) {
   // handle message arrived
 }
 
 void mqttPublish(int stat) {
   if (WiFi.status() == WL_CONNECTED) {
+
+    // if not connected -> connect and publish
     if (!client.connected()) {
       Serial.println("Connecting to MQTT server");
       if (client.connect(MQTT::Connect(String(ESP.getChipId())).set_auth(mqttUser, mqttPassword))) {
         Serial.println("Connected to MQTT server");
-        client.set_callback(callback);
+        client.set_callback(mqttCallback);
         client.publish("toilet/"+String(OFFICE)+"/"+String(ESP.getChipId()),String(stat));
       } else {
-        Serial.println("Could not connect to MQTT server");   
+        Serial.println("Could not connect to MQTT server");
       }
     }
-    if (client.connected())
+    // if connected -> publish
+    else {
         Serial.println("Connected to MQTT server");
-        client.set_callback(callback);
+        client.set_callback(mqttCallback);
         client.publish("toilet/"+String(OFFICE)+"/"+String(ESP.getChipId()),String(stat));
-  }
+    }
 
-  String message = "toilet/"+String(OFFICE)+"/"+String(ESP.getChipId())+"/"+String(stat);
-  Serial.println(message);
+    // console debug
+    String message = "toilet/"+String(OFFICE)+"/"+String(ESP.getChipId())+"/"+String(stat);
+    Serial.println(message);
   }
-}  
+}
 
 int measureDistance()  {
   /* Measure the distance using HC-SR04 sensor 
