@@ -11,16 +11,21 @@
 #define trigPin 5 //D1
 #define echoPin 4 //D2
 
+#define STATE_UNKNOWN 0
+#define STATE_UNOCCUPIED 10
+#define STATE_OCCUPIED 20
+
 #define UNOCCUPIED_DISTANCE 100
 #define OFFICE "MeaningfulOfficeID"
 #define VERSION 1
-const int sleepTime = 5; // in seconds
+const int sleepTime = 1; // in seconds
 
 // Samples configuration
 const int samplesPerMeasure = 10;
 const int maxSamplesPerMeasure = 50;
-const int hysteresisBufferSize = 5;
+const int hysteresisBufferSize = 10;
 boolean hysteresisBuffer[hysteresisBufferSize];
+int hysteresisBufferIterator = 0;
 
 // WiFi
 const char* SSID = "SSID";
@@ -38,6 +43,11 @@ void setup() {
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
 
+  //Fill buffer with unknown state
+  for (int i=0; i<hysteresisBufferSize; i++) {
+    hysteresisBuffer[i] = STATE_UNKNOWN; //unknown state
+  }
+
   // WiFi setup
   WiFi.begin(SSID, wifiPassword);
   
@@ -51,13 +61,17 @@ void setup() {
   Serial.println("]");
 }
 
-
+/**
+ * Main loop take measures and send to broker
+ */
 void loop() {
   int distance;
   int deviceId;
   int state;
   
   StaticJsonBuffer<256> jsonBuffer;
+  
+  Serial.println("---------------------------------");
    
   deviceId = ESP.getChipId();
    
@@ -66,34 +80,29 @@ void loop() {
   Serial.print("Distance: ");
   Serial.println(distance);
 
-  if (getHysteresisState(distance)) {
-    state = 10;
-  } else {
-    state = 0;
-  }
+  state = getHysteresisState(distance);
   
-  Serial.print("State: ");
+  Serial.print("Hysteresis state: ");
   Serial.println(state);
   
   JsonObject& jsonMessage = buildJson(jsonBuffer, distance, deviceId, VERSION, state);
   String message;
   jsonMessage.printTo(message);
-  
 
   // send to mqtt
   mqttPublish(message, deviceId);
 
   // nobody is that quick in toilet ...
-  if (state)  {
-    delay(sleepTime * 1000);
-  }
+  delay(sleepTime * 1000);
 }
-
 
 void mqttCallback(const MQTT::Publish& pub) {
   // handle message arrived
 }
 
+/**
+ * Send data to MQTT broker
+ */
 void mqttPublish(String message, int intDeviceId) {
   if (WiFi.status() == WL_CONNECTED) {
     String deviceId = String(intDeviceId);
@@ -130,6 +139,9 @@ void mqttPublish(String message, int intDeviceId) {
   }
 }
 
+/**
+ * Creates comunication frame
+ */
 JsonObject& buildJson(JsonBuffer& jsonBuffer, int distance, int deviceId, int ver, int state)  {
   JsonObject& root = jsonBuffer.createObject();
 
@@ -144,16 +156,68 @@ JsonObject& buildJson(JsonBuffer& jsonBuffer, int distance, int deviceId, int ve
   return root;
 }
 
-boolean getHysteresisState(int lastMeasurement) {
-//@todo cyclic buffer for hysteresis
-  
-  if (lastMeasurement < UNOCCUPIED_DISTANCE) {
-    return true;
-  } else {
-    return false;
+/**
+ * Determinate state and apply histeresis using history states
+ */
+int getHysteresisState(int lastMeasurement) {
+  int state = STATE_UNKNOWN;
+
+  if (lastMeasurement) {
+    
+    if (lastMeasurement < UNOCCUPIED_DISTANCE) {
+     state = STATE_OCCUPIED;
+    } else {
+     state = STATE_UNOCCUPIED;
+    }
   }
+
+  Serial.print("Current state ");
+  Serial.println(state);
+
+  hysteresisBuffer[hysteresisBufferIterator] = state;
+
+  hysteresisBufferIterator = (hysteresisBufferIterator + 1) % hysteresisBufferSize;
+
+  return getPopularElement();
 }
 
+/**
+ * Return most popular state from buffer
+ */
+int getPopularElement() {
+  int count = 1, tempCount;
+  int popular = hysteresisBuffer[0];
+  int temp = 0;
+
+  Serial.print("Buffer ");
+  
+  for (int i = 0; i < hysteresisBufferSize; i++)
+  {
+    temp = hysteresisBuffer[i];
+    tempCount = 0;
+
+    Serial.print(temp);
+    Serial.print(" ");
+    
+    for (int j = 1; j < hysteresisBufferSize; j++) {
+      if (temp == hysteresisBuffer[j])
+        tempCount++;
+    }
+    
+    if (tempCount > count) {
+      popular = temp;
+      count = tempCount;
+    }
+  }
+
+  Serial.println();
+  
+  return popular;
+}
+
+/**
+ * Make multiple samples and calculat avg measure
+ */
 int measureDistance()  {
 
   int sampleCount = samplesPerMeasure,
@@ -161,8 +225,10 @@ int measureDistance()  {
       measurements[samplesPerMeasure],
       sum = 0,
       average;
+  
+  Serial.print("Samples: ");
 
-  while (sampleCount && maxSamplesPerMeasure) {
+  while (sampleCount && maxSampleCount) {
     int distance = singleMeasure();
 
     Serial.print(" ");
@@ -176,6 +242,8 @@ int measureDistance()  {
     maxSampleCount--;
   }
 
+  Serial.println();
+
   int samplesCount = (samplesPerMeasure - sampleCount);
 
   if (samplesCount) {
@@ -184,19 +252,15 @@ int measureDistance()  {
     average = 0;
   }
 
- 
-  Serial.println();
-  Serial.print("Average ");
-  Serial.println(average);
-
   return average;
 }
 
+/**
+ * Measure the distance using HC-SR04 sensor 
+ * Return: distance (int) in cm
+ */
 int singleMeasure() {
   
-  /* Measure the distance using HC-SR04 sensor 
-   Retur: distance (int) in cm */
-
   long time, distance;
 
   // generate triger
@@ -214,4 +278,3 @@ int singleMeasure() {
 
   return distance;
 }
-
