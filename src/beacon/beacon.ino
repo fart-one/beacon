@@ -30,11 +30,12 @@ boolean hysteresisBuffer[hysteresisBufferSize];
 int hysteresisBufferIterator = 0;
 
 // Config file
-String configFile = "/config.json";
+const String configFile = "/config.json";
 
-
-
-// MQTT
+/*
+ * MQTT const variables - they need to be here 
+ * we read them once in setup() and use them many times in loop()
+ */
 const char *mqttServer;
 const char *mqttUser;
 const char *mqttPassword;
@@ -53,11 +54,11 @@ void setup() {
   
   const char* SSID = jsonConf["SSID"];
   const char* wifiPassword = jsonConf["wifiPassword"];
-  //Serial.println(wifiPassword);
-  //Serial.println(SSID);
+
   mqttServer = jsonConf["mqttServer"];
   mqttUser = jsonConf["mqttUser"];
   mqttPassword = jsonConf["mqttPassword"];
+  
   officeId = jsonConf["officeId"];
   
   //Fill buffer with unknown state
@@ -298,6 +299,9 @@ int singleMeasure() {
   return distance;
 }
 
+/*
+ * Read config from SPIFFS and return parsed json
+ */
 JsonObject& readConfig(String configFile, StaticJsonBufferBase& configJsonBuffer) {
   String payload;
 
@@ -317,8 +321,7 @@ JsonObject& readConfig(String configFile, StaticJsonBufferBase& configJsonBuffer
     Serial.println("Config file not fould !"); 
   }
 
-  // parse json
-  //StaticJsonBuffer<256> jsonBuffer; // message json
+  // parsing json
   JsonObject& root = configJsonBuffer.parseObject(payload);
   
   SPIFFS.end(); // unmount filesystem
