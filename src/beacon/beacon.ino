@@ -2,10 +2,13 @@
 // WeMos D1 (ESP8266): D1 - trigger, D2 - echo, D0 and RST connected for deep sleep mode
 // MQTT using https://github.com/Imroy/pubsubclient
 // JSON using: https://github.com/bblanchon/ArduinoJson
+// config upload: https://github.com/esp8266/arduino-esp8266fs-plugin
 
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
+#include <FS.h>
+
 
 
 #define trigPin 5 //D1
@@ -16,7 +19,6 @@
 #define STATE_OCCUPIED 20
 
 #define UNOCCUPIED_DISTANCE 100
-#define OFFICE "MeaningfulOfficeID"
 #define VERSION 1
 const int sleepTime = 1; // in seconds
 
@@ -27,22 +29,37 @@ const int hysteresisBufferSize = 10;
 boolean hysteresisBuffer[hysteresisBufferSize];
 int hysteresisBufferIterator = 0;
 
-// WiFi
-const char* SSID = "SSID";
-const char* wifiPassword = "WiFi password";
-const char* mqttServer ="mqtt FQDN";
-const char* mqttUser = "mqtt login";
-const char* mqttPassword = "mqtt password";
+// Config file
+String configFile = "/config.json";
+
+
 
 // MQTT
-WiFiClient wclient;
-PubSubClient client(wclient, mqttServer);
+const char *mqttServer;
+const char *mqttUser;
+const char *mqttPassword;
+const char *officeId;
 
 void setup() {
   Serial.begin (9600);
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
 
+  // Read config file
+  Serial.println("Reading config");
+
+  StaticJsonBuffer<256> configJsonBuffer;
+  JsonObject& jsonConf = readConfig(configFile, configJsonBuffer);
+  
+  const char* SSID = jsonConf["SSID"];
+  const char* wifiPassword = jsonConf["wifiPassword"];
+  //Serial.println(wifiPassword);
+  //Serial.println(SSID);
+  mqttServer = jsonConf["mqttServer"];
+  mqttUser = jsonConf["mqttUser"];
+  mqttPassword = jsonConf["mqttPassword"];
+  officeId = jsonConf["officeId"];
+  
   //Fill buffer with unknown state
   for (int i=0; i<hysteresisBufferSize; i++) {
     hysteresisBuffer[i] = STATE_UNKNOWN; //unknown state
@@ -68,9 +85,7 @@ void loop() {
   int distance;
   int deviceId;
   int state;
-  
-  StaticJsonBuffer<256> jsonBuffer;
-  
+
   Serial.println("---------------------------------");
    
   deviceId = ESP.getChipId();
@@ -85,12 +100,13 @@ void loop() {
   Serial.print("Hysteresis state: ");
   Serial.println(state);
   
-  JsonObject& jsonMessage = buildJson(jsonBuffer, distance, deviceId, VERSION, state);
+  StaticJsonBuffer<256> messageJsonBuffer;
+  JsonObject& jsonMessage = buildJson(messageJsonBuffer, distance, deviceId, VERSION, state);
   String message;
   jsonMessage.printTo(message);
 
   // send to mqtt
-  mqttPublish(message, deviceId);
+  mqttPublish(message, deviceId, officeId);
 
   // nobody is that quick in toilet ...
   delay(sleepTime * 1000);
@@ -103,7 +119,10 @@ void mqttCallback(const MQTT::Publish& pub) {
 /**
  * Send data to MQTT broker
  */
-void mqttPublish(String message, int intDeviceId) {
+void mqttPublish(String message, int intDeviceId, String officeId) {
+  WiFiClient wclient;
+  PubSubClient client(wclient, mqttServer);
+  
   if (WiFi.status() == WL_CONNECTED) {
     String deviceId = String(intDeviceId);
     
@@ -116,7 +135,7 @@ void mqttPublish(String message, int intDeviceId) {
       {
         Serial.println("Connected to MQTT server");
         client.set_callback(mqttCallback);
-        client.publish(MQTT::Publish("toilet/"+String(OFFICE)+"/"+deviceId,message)
+        client.publish(MQTT::Publish("toilet/"+officeId+"/"+deviceId,message)
           .set_qos(1)
           .set_retain()
         );
@@ -128,7 +147,7 @@ void mqttPublish(String message, int intDeviceId) {
     else {
         Serial.println("Connected to MQTT server");
         client.set_callback(mqttCallback);
-        client.publish(MQTT::Publish("toilet/"+String(OFFICE)+"/"+deviceId,message)
+        client.publish(MQTT::Publish("toilet/"+officeId+"/"+deviceId,message)
           .set_qos(1)
           .set_retain()
         );
@@ -142,8 +161,8 @@ void mqttPublish(String message, int intDeviceId) {
 /**
  * Creates comunication frame
  */
-JsonObject& buildJson(JsonBuffer& jsonBuffer, int distance, int deviceId, int ver, int state)  {
-  JsonObject& root = jsonBuffer.createObject();
+JsonObject& buildJson(StaticJsonBufferBase& messageJsonBuffer, int distance, int deviceId, int ver, int state)  {
+  JsonObject& root = messageJsonBuffer.createObject();
 
   root["deviceId"] = deviceId;
   root["status"] = state;
@@ -278,3 +297,32 @@ int singleMeasure() {
 
   return distance;
 }
+
+JsonObject& readConfig(String configFile, StaticJsonBufferBase& configJsonBuffer) {
+  String payload;
+
+  SPIFFS.begin(); // mount filesystem
+  
+  //read raw data from config file
+  if (SPIFFS.exists(configFile)) {
+    Serial.println("Config file found:");
+    File file = SPIFFS.open(configFile,"r");
+    if (file) {
+      payload=file.readString();
+      Serial.println(payload);
+      //Serial.print(String(file.size()));        
+    }
+    file.close();
+  } else {
+    Serial.println("Config file not fould !"); 
+  }
+
+  // parse json
+  //StaticJsonBuffer<256> jsonBuffer; // message json
+  JsonObject& root = configJsonBuffer.parseObject(payload);
+  
+  SPIFFS.end(); // unmount filesystem
+
+  return root;
+}
+

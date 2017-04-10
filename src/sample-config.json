@@ -1,0 +1,8 @@
+{
+	"SSID" : "wifi_SSID",
+	"wifiPassword" : "wifi_password",
+	"mqttServer" : "mqtt_server",
+	"mqttUser" : "mqtt_user",
+	"mqttPassword" : "mqtt_password",
+	"officeId"	: "office_id"
+}
