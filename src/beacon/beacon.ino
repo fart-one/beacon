@@ -20,7 +20,7 @@
 
 #define UNOCCUPIED_DISTANCE 80
 #define VERSION 1
-const int sleepTime = 10; // in seconds
+const int sleepTime = 1; // in seconds
 
 // Samples configuration
 const int samplesPerMeasure = 10;
@@ -40,7 +40,8 @@ const char *mqttServer;
 const char *mqttUser;
 const char *mqttPassword;
 const char *officeId;
-
+StaticJsonBuffer<256> configJsonBuffer;
+  
 void setup() {
   Serial.begin (9600);
   pinMode(trigPin, OUTPUT);
@@ -49,10 +50,9 @@ void setup() {
   // Read config file
   Serial.println("Reading config");
 
-  StaticJsonBuffer<256> configJsonBuffer;
   JsonObject& jsonConf = readConfig(configFile, configJsonBuffer);
   
-  const char* SSID = jsonConf["SSID"];
+  const char* wifiSSID = jsonConf["SSID"];
   const char* wifiPassword = jsonConf["wifiPassword"];
 
   mqttServer = jsonConf["mqttServer"];
@@ -67,10 +67,11 @@ void setup() {
   }
 
   // WiFi setup
-  WiFi.begin(SSID, wifiPassword);
+  WiFi.begin(wifiSSID, wifiPassword);
   
   while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
+    
+    delay(5000);
     Serial.println("[?] Waiting for WiFi connection");
   }
   Serial.println("");
