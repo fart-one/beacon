@@ -18,9 +18,9 @@
 #define STATE_UNOCCUPIED 10
 #define STATE_OCCUPIED 20
 
-#define UNOCCUPIED_DISTANCE 100
+#define UNOCCUPIED_DISTANCE 80
 #define VERSION 1
-const int sleepTime = 1; // in seconds
+const int sleepTime = 10; // in seconds
 
 // Samples configuration
 const int samplesPerMeasure = 10;
