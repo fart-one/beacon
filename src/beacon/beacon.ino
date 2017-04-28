@@ -20,7 +20,9 @@
 
 #define UNOCCUPIED_DISTANCE 80
 #define VERSION 1
-const int sleepTime = 1; // in seconds
+
+const int sleepTime = 1; // delay between measurements (in seconds)
+const int occupiedSleepTime = 20; // delay if occupied (in seconds)
 
 // Samples configuration
 const int samplesPerMeasure = 10;
@@ -28,6 +30,9 @@ const int maxSamplesPerMeasure = 50;
 const int hysteresisBufferSize = 10;
 boolean hysteresisBuffer[hysteresisBufferSize];
 int hysteresisBufferIterator = 0;
+
+
+int last_state = STATE_UNOCCUPIED; // initial value
 
 // Config file
 const String configFile = "/config.json";
@@ -112,6 +117,15 @@ void loop() {
 
   // nobody is that quick in toilet ...
   delay(sleepTime * 1000);
+
+  // if occupied ... wait 10 seconds before next measurement
+  if (state == STATE_OCCUPIED and last_state == STATE_UNOCCUPIED) {
+    Serial.print("Occupied, sleeping for ");
+    Serial.println(occupiedSleepTime);
+    delay(occupiedSleepTime * 1000);
+    
+  } 
+  last_state = state;
 }
 
 void mqttCallback(const MQTT::Publish& pub) {
