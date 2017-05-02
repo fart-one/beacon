@@ -13221,27 +13221,27 @@ In this library the device names are the same as the pin names of the symbols, t
 <library name="ch340g">
 <packages>
 <package name="SOP16">
-<smd name="GND" x="-41.91" y="36.83" dx="1.4224" dy="0.7112" layer="1"/>
-<smd name="TXD" x="-41.91" y="35.56" dx="1.4224" dy="0.7112" layer="1"/>
-<smd name="RXD" x="-41.91" y="34.29" dx="1.4224" dy="0.7112" layer="1"/>
-<smd name="V3" x="-41.91" y="33.02" dx="1.4224" dy="0.7112" layer="1"/>
-<smd name="USBDP" x="-41.91" y="31.75" dx="1.4224" dy="0.7112" layer="1"/>
-<smd name="USBDM" x="-41.91" y="30.48" dx="1.4224" dy="0.7112" layer="1"/>
-<smd name="OSCI" x="-41.91" y="29.21" dx="1.4224" dy="0.7112" layer="1"/>
-<smd name="OSCO" x="-41.91" y="27.94" dx="1.4224" dy="0.7112" layer="1"/>
-<smd name="VCC" x="-35.56" y="36.83" dx="1.4224" dy="0.7112" layer="1"/>
-<smd name="R232" x="-35.56" y="35.56" dx="1.4224" dy="0.7112" layer="1"/>
-<smd name="RTS" x="-35.56" y="34.29" dx="1.4224" dy="0.7112" layer="1"/>
-<smd name="DTR" x="-35.56" y="33.02" dx="1.4224" dy="0.7112" layer="1"/>
-<smd name="DCD" x="-35.56" y="31.75" dx="1.4224" dy="0.7112" layer="1"/>
-<smd name="RI" x="-35.56" y="30.48" dx="1.4224" dy="0.7112" layer="1"/>
-<smd name="DSR" x="-35.56" y="29.21" dx="1.4224" dy="0.7112" layer="1"/>
-<smd name="CTS" x="-35.56" y="27.94" dx="1.4224" dy="0.7112" layer="1"/>
-<wire x1="-41.1" y1="37.3" x2="-36.4" y2="37.3" width="0.127" layer="21"/>
-<wire x1="-36.4" y1="37.3" x2="-36.4" y2="27.5" width="0.127" layer="21"/>
-<wire x1="-36.4" y1="27.5" x2="-41.1" y2="27.5" width="0.127" layer="21"/>
-<wire x1="-41.1" y1="27.5" x2="-41.1" y2="37.3" width="0.127" layer="21"/>
-<circle x="-40.2" y="36.4" radius="0.5" width="0.127" layer="21"/>
+<smd name="GND" x="-3.175" y="4.445" dx="1.4224" dy="0.7112" layer="1"/>
+<smd name="TXD" x="-3.175" y="3.175" dx="1.4224" dy="0.7112" layer="1"/>
+<smd name="RXD" x="-3.175" y="1.905" dx="1.4224" dy="0.7112" layer="1"/>
+<smd name="V3" x="-3.175" y="0.635" dx="1.4224" dy="0.7112" layer="1"/>
+<smd name="USBDP" x="-3.175" y="-0.635" dx="1.4224" dy="0.7112" layer="1"/>
+<smd name="USBDM" x="-3.175" y="-1.905" dx="1.4224" dy="0.7112" layer="1"/>
+<smd name="OSCI" x="-3.175" y="-3.175" dx="1.4224" dy="0.7112" layer="1"/>
+<smd name="OSCO" x="-3.175" y="-4.445" dx="1.4224" dy="0.7112" layer="1"/>
+<smd name="VCC" x="3.175" y="4.445" dx="1.4224" dy="0.7112" layer="1"/>
+<smd name="R232" x="3.175" y="3.175" dx="1.4224" dy="0.7112" layer="1"/>
+<smd name="RTS" x="3.175" y="1.905" dx="1.4224" dy="0.7112" layer="1"/>
+<smd name="DTR" x="3.175" y="0.635" dx="1.4224" dy="0.7112" layer="1"/>
+<smd name="DCD" x="3.175" y="-0.635" dx="1.4224" dy="0.7112" layer="1"/>
+<smd name="RI" x="3.175" y="-1.905" dx="1.4224" dy="0.7112" layer="1"/>
+<smd name="DSR" x="3.175" y="-3.175" dx="1.4224" dy="0.7112" layer="1"/>
+<smd name="CTS" x="3.175" y="-4.445" dx="1.4224" dy="0.7112" layer="1"/>
+<wire x1="-2.365" y1="4.915" x2="2.335" y2="4.915" width="0.127" layer="21"/>
+<wire x1="2.335" y1="4.915" x2="2.335" y2="-4.885" width="0.127" layer="21"/>
+<wire x1="2.335" y1="-4.885" x2="-2.365" y2="-4.885" width="0.127" layer="21"/>
+<wire x1="-2.365" y1="-4.885" x2="-2.365" y2="4.915" width="0.127" layer="21"/>
+<circle x="-1.465" y="4.015" radius="0.5" width="0.127" layer="21"/>
 </package>
 </packages>
 <symbols>
@@ -14646,7 +14646,7 @@ Source: http://www.onsemi.com/pub_link/Collateral/MBRA340T3-D.PDF</description>
 </classes>
 <parts>
 <part name="X1" library="con-hirose" deviceset="MINI-USB-" device="UX60A-MB-5ST"/>
-<part name="U1" library="esp8266modules" deviceset="ESP12" device="SMD"/>
+<part name="U1" library="esp8266modules" deviceset="ESP12" device="SMD" value="ESP-12F"/>
 <part name="IC1" library="lm1117" deviceset="LM1117SX-*" device="" technology="3.3"/>
 <part name="C1" library="rcl" deviceset="C-EU" device="C1206K" value="100n"/>
 <part name="C2" library="rcl" deviceset="C-EU" device="C1206K" value="10u"/>
@@ -14755,11 +14755,11 @@ Source: http://www.onsemi.com/pub_link/Collateral/MBRA340T3-D.PDF</description>
 <instance part="+3V6" gate="G$1" x="132.08" y="99.06"/>
 <instance part="GND13" gate="1" x="185.42" y="43.18"/>
 <instance part="+3V7" gate="G$1" x="170.18" y="99.06"/>
-<instance part="SV2" gate="A" x="121.92" y="15.24" rot="R180"/>
-<instance part="TRIGGER" gate="G$1" x="154.94" y="15.24"/>
-<instance part="ECHO" gate="G$1" x="154.94" y="12.7"/>
-<instance part="GND14" gate="1" x="134.62" y="2.54"/>
-<instance part="P+5" gate="1" x="134.62" y="27.94"/>
+<instance part="SV2" gate="A" x="152.4" y="12.7"/>
+<instance part="TRIGGER" gate="G$1" x="121.92" y="15.24" rot="R180"/>
+<instance part="ECHO" gate="G$1" x="121.92" y="12.7" rot="R180"/>
+<instance part="GND14" gate="1" x="142.24" y="2.54"/>
+<instance part="P+5" gate="1" x="142.24" y="25.4"/>
 <instance part="TRIGGER1" gate="G$1" x="101.6" y="60.96" rot="R180"/>
 <instance part="ECHO1" gate="G$1" x="101.6" y="63.5" rot="R180"/>
 <instance part="RTS" gate="G$1" x="93.98" y="17.78"/>
@@ -14825,12 +14825,6 @@ Source: http://www.onsemi.com/pub_link/Collateral/MBRA340T3-D.PDF</description>
 <wire x1="129.54" y1="43.18" x2="129.54" y2="45.72" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="SV2" gate="A" pin="1"/>
-<pinref part="GND14" gate="1" pin="GND"/>
-<wire x1="124.46" y1="10.16" x2="134.62" y2="10.16" width="0.1524" layer="91"/>
-<wire x1="134.62" y1="10.16" x2="134.62" y2="5.08" width="0.1524" layer="91"/>
-</segment>
-<segment>
 <pinref part="R6" gate="G$1" pin="2"/>
 <pinref part="GND13" gate="1" pin="GND"/>
 <wire x1="185.42" y1="48.26" x2="185.42" y2="45.72" width="0.1524" layer="91"/>
@@ -14868,6 +14862,12 @@ Source: http://www.onsemi.com/pub_link/Collateral/MBRA340T3-D.PDF</description>
 <pinref part="GND6" gate="1" pin="GND"/>
 <wire x1="15.24" y1="0" x2="12.7" y2="0" width="0.1524" layer="91"/>
 <wire x1="12.7" y1="0" x2="12.7" y2="-2.54" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="SV2" gate="A" pin="4"/>
+<pinref part="GND14" gate="1" pin="GND"/>
+<wire x1="149.86" y1="10.16" x2="142.24" y2="10.16" width="0.1524" layer="91"/>
+<wire x1="142.24" y1="10.16" x2="142.24" y2="5.08" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="+3V3" class="0">
@@ -14945,15 +14945,15 @@ Source: http://www.onsemi.com/pub_link/Collateral/MBRA340T3-D.PDF</description>
 <junction x="25.4" y="73.66"/>
 </segment>
 <segment>
-<pinref part="P+5" gate="1" pin="+5V"/>
-<pinref part="SV2" gate="A" pin="4"/>
-<wire x1="134.62" y1="25.4" x2="134.62" y2="17.78" width="0.1524" layer="91"/>
-<wire x1="134.62" y1="17.78" x2="124.46" y2="17.78" width="0.1524" layer="91"/>
-</segment>
-<segment>
 <pinref part="D1" gate="G$1" pin="C"/>
 <pinref part="P+2" gate="1" pin="+5V"/>
 <wire x1="-22.86" y1="81.28" x2="-22.86" y2="96.52" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="SV2" gate="A" pin="1"/>
+<pinref part="P+5" gate="1" pin="+5V"/>
+<wire x1="149.86" y1="17.78" x2="142.24" y2="17.78" width="0.1524" layer="91"/>
+<wire x1="142.24" y1="17.78" x2="142.24" y2="22.86" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="USBDP" class="0">
@@ -14998,22 +14998,22 @@ Source: http://www.onsemi.com/pub_link/Collateral/MBRA340T3-D.PDF</description>
 </net>
 <net name="TRIGGER" class="0">
 <segment>
-<pinref part="SV2" gate="A" pin="3"/>
-<wire x1="139.7" y1="15.24" x2="124.46" y2="15.24" width="0.1524" layer="91"/>
-</segment>
-<segment>
 <pinref part="U1" gate="G$1" pin="GPIO13"/>
 <wire x1="134.62" y1="60.96" x2="116.84" y2="60.96" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="SV2" gate="A" pin="2"/>
+<wire x1="149.86" y1="15.24" x2="137.16" y2="15.24" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="ECHO" class="0">
 <segment>
-<pinref part="SV2" gate="A" pin="2"/>
-<wire x1="139.7" y1="12.7" x2="124.46" y2="12.7" width="0.1524" layer="91"/>
-</segment>
-<segment>
 <pinref part="U1" gate="G$1" pin="GPIO12"/>
 <wire x1="134.62" y1="63.5" x2="116.84" y2="63.5" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="SV2" gate="A" pin="3"/>
+<wire x1="149.86" y1="12.7" x2="137.16" y2="12.7" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="RTS" class="0">
@@ -15170,6 +15170,32 @@ Source: http://www.onsemi.com/pub_link/Collateral/MBRA340T3-D.PDF</description>
 </nets>
 </sheet>
 </sheets>
+<errors>
+<approved hash="202,1,-17.78,63.5,X1,4,,,,"/>
+<approved hash="113,1,151.13,68.4318,U1,,,,,"/>
+<approved hash="113,1,218.44,47.8705,RESET,,,,,"/>
+<approved hash="115,1,125.73,63.5,ECHO,,,,,"/>
+<approved hash="115,1,132.08,12.7,ECHO,,,,,"/>
+<approved hash="115,1,76.2,22.86,RX,,,,,"/>
+<approved hash="115,1,176.53,76.2,RX,,,,,"/>
+<approved hash="115,1,64.77,12.7,DTR,,,,,"/>
+<approved hash="115,1,217.17,20.32,DTR,,,,,"/>
+<approved hash="115,1,11.43,7.62,USBDP,,,,,"/>
+<approved hash="115,1,-21.59,66.04,USBDP,,,,,"/>
+<approved hash="115,1,71.12,25.4,TX,,,,,"/>
+<approved hash="115,1,176.53,73.66,TX,,,,,"/>
+<approved hash="115,1,11.43,5.08,USBDM,,,,,"/>
+<approved hash="115,1,-21.59,68.58,USBDM,,,,,"/>
+<approved hash="115,1,64.77,17.78,RTS,,,,,"/>
+<approved hash="115,1,215.9,-2.54,RTS,,,,,"/>
+<approved hash="115,1,125.73,60.96,TRIGGER,,,,,"/>
+<approved hash="115,1,132.08,15.24,TRIGGER,,,,,"/>
+<approved hash="115,1,170.18,73.66,GPIO0,,,,,"/>
+<approved hash="115,1,187.96,-8.89,GPIO0,,,,,"/>
+<approved hash="115,1,223.52,44.45,RST,,,,,"/>
+<approved hash="115,1,128.27,76.2,RST,,,,,"/>
+<approved hash="115,1,187.96,13.97,RST,,,,,"/>
+</errors>
 </schematic>
 </drawing>
 </eagle>
