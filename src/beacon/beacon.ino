@@ -10,6 +10,9 @@
 #include <FS.h>
 
 
+/*****************
+   Configuration
+ *****************/
 
 #define trigPin 5 //D1
 #define echoPin 4 //D2
@@ -21,8 +24,10 @@
 #define UNOCCUPIED_DISTANCE 80
 #define VERSION 1
 
+// Timeouts
 const int sleepTime = 1; // delay between measurements (in seconds)
 const int occupiedSleepTime = 20; // delay if occupied (in seconds)
+const int mqttConnectionTimeout = 10; // delay in seconds beffore next connection attempt
 
 // Samples configuration
 const int samplesPerMeasure = 10;
@@ -31,22 +36,27 @@ const int hysteresisBufferSize = 10;
 boolean hysteresisBuffer[hysteresisBufferSize];
 int hysteresisBufferIterator = 0;
 
-
-int last_state = STATE_UNOCCUPIED; // initial value
+// Initial value
+int last_state = STATE_UNOCCUPIED;
 
 // Config file
 const String configFile = "/config.json";
 
+// TLS
+const char* fingerprint = "49 F5 0D 4C F3 3D 5F D4 7E BB D3 81 63 77 0C 30 07 2C FD AF";
+#define MQTT_TLS_PORT 8883
+
 /*
- * MQTT const variables - they need to be here 
- * we read them once in setup() and use them many times in loop()
- */
+   MQTT const variables - they need to be here
+   we read them once in setup() and use them many times in loop()
+*/
 const char *mqttServer;
 const char *mqttUser;
 const char *mqttPassword;
 const char *officeId;
+
 StaticJsonBuffer<256> configJsonBuffer;
-  
+
 void setup() {
   Serial.begin (9600);
   pinMode(trigPin, OUTPUT);
@@ -56,26 +66,26 @@ void setup() {
   Serial.println("Reading config");
 
   JsonObject& jsonConf = readConfig(configFile, configJsonBuffer);
-  
+
   const char* wifiSSID = jsonConf["SSID"];
   const char* wifiPassword = jsonConf["wifiPassword"];
 
   mqttServer = jsonConf["mqttServer"];
   mqttUser = jsonConf["mqttUser"];
   mqttPassword = jsonConf["mqttPassword"];
-  
+
   officeId = jsonConf["officeId"];
-  
+
   //Fill buffer with unknown state
-  for (int i=0; i<hysteresisBufferSize; i++) {
+  for (int i = 0; i < hysteresisBufferSize; i++) {
     hysteresisBuffer[i] = STATE_UNKNOWN; //unknown state
   }
 
   // WiFi setup
   WiFi.begin(wifiSSID, wifiPassword);
-  
+
   while (WiFi.status() != WL_CONNECTED) {
-    
+
     delay(5000);
     Serial.println("[?] Waiting for WiFi connection");
   }
@@ -86,27 +96,27 @@ void setup() {
 }
 
 /**
- * Main loop take measures and send to broker
- */
+   Main loop take measures and send to broker
+*/
 void loop() {
   int distance;
   int deviceId;
   int state;
 
   Serial.println("---------------------------------");
-   
+
   deviceId = ESP.getChipId();
-   
+
   distance = measureDistance();
-   
+
   Serial.print("Distance: ");
   Serial.println(distance);
 
   state = getHysteresisState(distance);
-  
+
   Serial.print("Hysteresis state: ");
   Serial.println(state);
-  
+
   StaticJsonBuffer<256> messageJsonBuffer;
   JsonObject& jsonMessage = buildJson(messageJsonBuffer, distance, deviceId, VERSION, state);
   String message;
@@ -123,8 +133,8 @@ void loop() {
     Serial.print("Occupied, sleeping for ");
     Serial.println(occupiedSleepTime);
     delay(occupiedSleepTime * 1000);
-    
-  } 
+
+  }
   last_state = state;
 }
 
@@ -133,40 +143,45 @@ void mqttCallback(const MQTT::Publish& pub) {
 }
 
 /**
- * Send data to MQTT broker
- */
+   Send data to MQTT broker
+*/
 void mqttPublish(String message, int intDeviceId, String officeId) {
-  WiFiClient wclient;
-  PubSubClient client(wclient, mqttServer);
-  
+  WiFiClientSecure wclient;
+  PubSubClient client(wclient, mqttServer, MQTT_TLS_PORT);
+
+  // check TLS
+  Serial.print("Checking TLS fingerprint of ");
+  Serial.println(mqttServer);
+  while (!verifyTLSfingerprint(wclient)) {};
+
   if (WiFi.status() == WL_CONNECTED) {
     String deviceId = String(intDeviceId);
-    
+
     // if not connected -> connect and publish
     if (!client.connected()) {
       Serial.println("Connecting to MQTT server");
       if (client.connect(MQTT::Connect(deviceId)
-        .set_auth(mqttUser, mqttPassword)
-        .set_keepalive(60)))
+                         .set_auth(mqttUser, mqttPassword)
+                         .set_keepalive(60)))
       {
         Serial.println("Connected to MQTT server");
         client.set_callback(mqttCallback);
-        client.publish(MQTT::Publish("toilet/"+officeId+"/"+deviceId,message)
-          .set_qos(1)
-          .set_retain()
-        );
+        client.publish(MQTT::Publish("toilet/" + officeId + "/" + deviceId, message)
+                       .set_qos(1)
+                       .set_retain()
+                      );
       } else {
         Serial.println("Could not connect to MQTT server");
       }
     }
     // if connected -> publish
     else {
-        Serial.println("Connected to MQTT server");
-        client.set_callback(mqttCallback);
-        client.publish(MQTT::Publish("toilet/"+officeId+"/"+deviceId,message)
-          .set_qos(1)
-          .set_retain()
-        );
+      Serial.println("Connected to MQTT server");
+      client.set_callback(mqttCallback);
+      client.publish(MQTT::Publish("toilet/" + officeId + "/" + deviceId, message)
+                     .set_qos(1)
+                     .set_retain()
+                    );
     }
 
     // console debug
@@ -175,15 +190,15 @@ void mqttPublish(String message, int intDeviceId, String officeId) {
 }
 
 /**
- * Creates comunication frame
- */
+   Creates comunication frame
+*/
 JsonObject& buildJson(StaticJsonBufferBase& messageJsonBuffer, int distance, int deviceId, int ver, int state)  {
   JsonObject& root = messageJsonBuffer.createObject();
 
   root["deviceId"] = deviceId;
   root["status"] = state;
   root["version"] = ver;
-  
+
   JsonArray& measurements = root.createNestedArray("measurements");
   JsonObject& nested = measurements.createNestedObject();
   nested["distance"] = distance;
@@ -192,17 +207,17 @@ JsonObject& buildJson(StaticJsonBufferBase& messageJsonBuffer, int distance, int
 }
 
 /**
- * Determinate state and apply histeresis using history states
- */
+   Determinate state and apply histeresis using history states
+*/
 int getHysteresisState(int lastMeasurement) {
   int state = STATE_UNKNOWN;
 
   if (lastMeasurement) {
-    
+
     if (lastMeasurement < UNOCCUPIED_DISTANCE) {
-     state = STATE_OCCUPIED;
+      state = STATE_OCCUPIED;
     } else {
-     state = STATE_UNOCCUPIED;
+      state = STATE_UNOCCUPIED;
     }
   }
 
@@ -217,15 +232,15 @@ int getHysteresisState(int lastMeasurement) {
 }
 
 /**
- * Return most popular state from buffer
- */
+   Return most popular state from buffer
+*/
 int getPopularElement() {
   int count = 1, tempCount;
   int popular = hysteresisBuffer[0];
   int temp = 0;
 
   Serial.print("Buffer ");
-  
+
   for (int i = 0; i < hysteresisBufferSize; i++)
   {
     temp = hysteresisBuffer[i];
@@ -233,12 +248,12 @@ int getPopularElement() {
 
     Serial.print(temp);
     Serial.print(" ");
-    
+
     for (int j = 1; j < hysteresisBufferSize; j++) {
       if (temp == hysteresisBuffer[j])
         tempCount++;
     }
-    
+
     if (tempCount > count) {
       popular = temp;
       count = tempCount;
@@ -246,13 +261,13 @@ int getPopularElement() {
   }
 
   Serial.println();
-  
+
   return popular;
 }
 
 /**
- * Make multiple samples and calculat avg measure
- */
+   Make multiple samples and calculat avg measure
+*/
 int measureDistance()  {
 
   int sampleCount = samplesPerMeasure,
@@ -260,7 +275,7 @@ int measureDistance()  {
       measurements[samplesPerMeasure],
       sum = 0,
       average;
-  
+
   Serial.print("Samples: ");
 
   while (sampleCount && maxSampleCount) {
@@ -291,11 +306,11 @@ int measureDistance()  {
 }
 
 /**
- * Measure the distance using HC-SR04 sensor 
- * Return: distance (int) in cm
- */
+   Measure the distance using HC-SR04 sensor
+   Return: distance (int) in cm
+*/
 int singleMeasure() {
-  
+
   long time, distance;
 
   // generate triger
@@ -315,32 +330,48 @@ int singleMeasure() {
 }
 
 /*
- * Read config from SPIFFS and return parsed json
- */
+   Read config from SPIFFS and return parsed json
+*/
 JsonObject& readConfig(String configFile, StaticJsonBufferBase& configJsonBuffer) {
   String payload;
 
   SPIFFS.begin(); // mount filesystem
-  
+
   //read raw data from config file
   if (SPIFFS.exists(configFile)) {
     Serial.println("Config file found:");
-    File file = SPIFFS.open(configFile,"r");
+    File file = SPIFFS.open(configFile, "r");
     if (file) {
-      payload=file.readString();
+      payload = file.readString();
       Serial.println(payload);
-      //Serial.print(String(file.size()));        
+      //Serial.print(String(file.size()));
     }
     file.close();
   } else {
-    Serial.println("Config file not fould !"); 
+    Serial.println("Config file not fould !");
   }
 
   // parsing json
   JsonObject& root = configJsonBuffer.parseObject(payload);
-  
+
   SPIFFS.end(); // unmount filesystem
 
   return root;
 }
 
+// TLS #1 - basic check to verify server certificate (certificate fingerprint)
+bool verifyTLSfingerprint(WiFiClientSecure wclient) {
+
+  while (!wclient.connect(mqttServer, MQTT_TLS_PORT)) {
+    Serial.println("Can't connect. Will try again in ");
+    delay(mqttConnectionTimeout * 1000);
+  }
+
+  if (wclient.verify(fingerprint, mqttServer)) {
+    Serial.println("Certificate matches");
+    return true;
+  } else {
+    Serial.println("Certificate doesn't match. Can't connect!");
+    return false;
+  }
+}
