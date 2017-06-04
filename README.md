@@ -1,0 +1,1 @@
+### Beacon version 1.0
